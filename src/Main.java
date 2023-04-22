@@ -12,11 +12,11 @@ public class Main {
             System.out.println((i + 1) + ". " + products[i] + " " + prices[i] + " руб/шт");
         }
 
-        File saveFile = new File("basket.txt");
+        File binFile = new File("basket.bin");
         Basket basket;
-        if (saveFile.exists()) {
+        if (binFile.exists()) {
             System.out.println();
-            basket = Basket.loadFromTxtFile(saveFile);
+            basket = Basket.loadFromTxtFile(binFile);
             basket.printCart();
         } else {
             System.out.println("Создаем новую корзину..");
@@ -34,9 +34,9 @@ public class Main {
             int productNumber = Integer.parseInt(parts[0]) - 1;
             int productCount = Integer.parseInt(parts[1]);
             basket.addToCart(productNumber, productCount);
-            basket.saveTxt(saveFile);
+            basket.saveTxt(binFile);
         }
         basket.printCart();
-
+        basket.saveTxt(binFile);
     }
 }

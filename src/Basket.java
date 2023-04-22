@@ -2,7 +2,8 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Basket {
+public class Basket implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     protected String[] products;
     protected int[] prices;
@@ -82,5 +83,27 @@ public class Basket {
 
     public void setProductsCount(int[] productsCount) {
         this.productsCount = productsCount;
+    }
+    public void saveBin(File file) {
+        try (FileOutputStream fos = new FileOutputStream(file);
+             ObjectOutputStream oos = new ObjectOutputStream(fos)) {
+            oos.writeObject(this);
+            System.out.println("Корзина сохранена");
+        } catch (IOException ex) {
+            ex.getMessage();
+        }
+    }
+
+    public static Basket loadFromBinFile(File file) {
+        try (FileInputStream fis = new FileInputStream(file);
+             ObjectInputStream ois = new ObjectInputStream(fis)) {
+            Basket basket = (Basket) ois.readObject();
+            return basket;
+        } catch (IOException ex) {
+            ex.getMessage();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
