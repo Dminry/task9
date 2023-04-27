@@ -1,3 +1,9 @@
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,7 +60,7 @@ public class Basket implements Serializable {
     public static Basket loadFromTxtFile(File textFile) {
         try (BufferedReader reader = new BufferedReader(new FileReader(textFile))) {
             String s;
-            Basket basket;
+            Basket basket ;
             List<String> stringList = new ArrayList<>();
             while ((s = reader.readLine()) != null) {
                 stringList.add(s);
@@ -105,5 +111,32 @@ public class Basket implements Serializable {
             e.printStackTrace();
         }
         return null;
+    }
+    public void saveJSON(File file){
+        try (PrintWriter writer = new PrintWriter(file)){
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            String json = gson.toJson(this);
+            writer.print(json);
+
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+    public static Basket loadFromJSONFile(File jsonFile) {
+        JSONParser parser = new JSONParser();
+        String jsonString ="" ;
+        try {
+            Object obj = parser.parse(new FileReader(jsonFile));
+            JSONObject jsonObject = (JSONObject) obj;
+            jsonString = jsonObject.toString();
+        } catch (IOException | ParseException ex) {
+            ex.getMessage();
+        }
+        GsonBuilder builder = new GsonBuilder();
+        Gson gson = builder.create();
+        Basket basket = gson.fromJson(jsonString, Basket.class);
+        return basket;
     }
 }
