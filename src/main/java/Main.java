@@ -1,46 +1,67 @@
+import org.xml.sax.SAXException;
+
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
+import java.io.IOException;
 import java.util.Scanner;
 
 public class Main {
-  //static   File saveFile = new File("basket.json");
+    static String[] products = {"Хлеб", "Яблоки", "Молоко"};
+    static int[] prices = {10, 15, 20};
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ParserConfigurationException, IOException, SAXException {
+        XMLReader settings = new XMLReader(new File("shop.xml"));
+        File loadFile = new File(settings.loadFile);
+        File saveFile = new File(settings.saveFile);
+        File logFile = new File(settings.logFile);
+        Basket basket = createBasket(loadFile, settings.isLoad, settings.loadFormat);
+        ClientLog clientLog = new ClientLog();
         Scanner scanner = new Scanner(System.in);
-        String[] products = {"Хлеб", "Яблоки", "Молоко"};
-        int[] prices = {10, 15, 20};
+
         System.out.println("Список возможных товаров для покупки");
         for (int i = 0; i < products.length; i++) {
             System.out.println((i + 1) + ". " + products[i] + " " + prices[i] + " руб/шт");
         }
 
-        File saveFile = new File("basket.json");
-        Basket basket;
-        if (saveFile.exists()) {
-            System.out.println();
-            basket = Basket.loadFromJSONFile(saveFile);
-            basket.printCart();
-        } else {
-            System.out.println("Создаем новую корзину..");
-            System.out.println();
-            basket = new Basket(products, prices);
-        }
-        ClientLog clientLog = new ClientLog();
 
         while (true) {
             System.out.println("Выберите товар и количество или введите `Итого'");
             String input = scanner.nextLine();
             if ("Итого".equals(input)) {
-                clientLog.exportAsCSV(new File("log.csv"));
-                break;
+                if (settings.isLog) {
+                    clientLog.exportAsCSV(logFile);
+                    break;
+                }
             }
             String[] parts = input.split(" ");
             int productNumber = Integer.parseInt(parts[0]) - 1;
             int productCount = Integer.parseInt(parts[1]);
             basket.addToCart(productNumber, productCount);
-            clientLog.log(productNumber,productCount);
-            basket.saveJSON(saveFile);
+            if (settings.isLog) {
+                clientLog.log(productNumber, productCount);
+            }
+            if (settings.isSave) {
+                switch (settings.saveFormat) {
+                    case "json" -> basket.saveJSON(saveFile);
+                    case "txt" -> basket.saveTxt(saveFile);
+                }
+            }
+
         }
         basket.printCart();
-        basket.saveJSON(saveFile);
+    }
+
+    private static Basket createBasket(File loadFile, boolean isLoad, String loadFormat) {
+        Basket basket;
+        if (isLoad && loadFile.exists())
+            basket = switch (loadFormat) {
+                case "json" -> Basket.loadFromJSONFile(loadFile);
+                case "txt" -> Basket.loadFromTxtFile(loadFile);
+                default -> new Basket(products, prices);
+            };
+        else {
+            basket = new Basket(products, prices);
+        }
+        return basket;
     }
 }
